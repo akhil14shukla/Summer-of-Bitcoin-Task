@@ -273,11 +273,11 @@ int main()
 
     sort_transactions(store);
 
-    // unordered_map<string, int> mapping_id; // mapping string to integers, to increase processing speed
+    unordered_map<string, int> mapping_id; // mapping string to integers, to increase processing speed
     unordered_map<int, string> reverse_id; // reverse mapping to retrieve id
     for (int i = 0; i < store.size(); i++)
     {
-        // mapping_id[store[i].ret_id()] = i;
+        mapping_id[store[i].ret_id()] = i;
         reverse_id[i] = store[i].ret_id();
     }
     // for (int i = 0; i < store.size(); i++)
