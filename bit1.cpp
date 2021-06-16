@@ -79,19 +79,10 @@ void sort_transactions(vector<Transaction> &store)
     store = final;
 }
 
-// struct trans_mapped
-// {
-//     int id;
-//     int weight;
-//     int fees;
-//     vector<int> par;
-// };
-int W = 4000000;
-vector<vector<pair<int, vector<int>>>> dp(2, vector<pair<int, vector<int>>>(W + 1, {0, {}})); // DP table for Knapsack Approach
+int max_Weight = 4000000; // given max weight
 // declaring Global Variables for taking input from given CSV file
 
 vector<Transaction> store; //global vector for maintaining transactions
-// vector<trans_mapped> store_mapped;
 string word, line;
 //------------------------
 
@@ -132,15 +123,47 @@ double avg_ratio(vector<Transaction> &store)
     {
         average_ratio += store[i].ratio();
     }
-    average_ratio = average_ratio / double(store.size());
+    return average_ratio = average_ratio / double(store.size());
 }
 
-pair<int, vector<int>> KnapSack(vector<Transaction> store)
+vector<vector<int>> recursive_parents(vector<Transaction> store, vector<vector<int>> &par_recursive, unordered_map<string, int> &mapping_id)
 {
+    for (int i = 0; i < store.size(); i++)
+    {
+        // sum = max(sum, int(store_mapped[i].par.size()));
+        unordered_set<int> s;
+        for (int j = 0; j < store[i].ret_par_size(); j++)
+        {
+            s.insert(mapping_id[store[i].ret_par_value(j)]);
+            for (int k = 0; k < par_recursive[mapping_id[store[i].ret_par_value(j)]].size(); k++) // adding parents of parents which have been already traversed by the loop
+            {
+                s.insert(par_recursive[mapping_id[store[i].ret_par_value(j)]][k]);
+            }
+        }
+        for (auto j : s)
+        {
+            par_recursive[i].push_back(j);
+        }
+    }
+    return par_recursive;
+}
+
+pair<int, vector<int>> KnapSack(vector<Transaction> store, int W)
+{
+    vector<vector<pair<int, vector<int>>>> dp(2, vector<pair<int, vector<int>>>(W + 1, {0, {}})); // DP table for Knapsack Approach
+
     int i = 0;
     int n = store.size();
     while (i < n)
     {
+        // if (set_string.find(store[i].ret_id()) != set_string.end())
+        // {
+        //     continue;
+        // }
+        // int flag = 0;
+        // for(int i1 = 0;i1<store[i].ret_par_size();i1++){
+        //     if()
+        // }
         int j = 0;
         if (i % 2 != 0)
         {
@@ -198,7 +221,7 @@ void pre_recursive(vector<Transaction> &store, unordered_set<string> &s, vector<
 {
     for (int i = 0; i < store.size(); i++)
     {
-        if (store[i].ratio() > 1.01107)
+        if (store[i].ratio() > 1.01107) //average ratio
         {
             int flag = 1;
             for (int j = 0; j < store[i].ret_par_size(); j++)
@@ -223,7 +246,7 @@ void pre_recursive(vector<Transaction> &store, unordered_set<string> &s, vector<
 
 void recursive(vector<Transaction> &store, unordered_set<string> &s, vector<string> &final, vector<string> &run, int i, int w, int f, int &mx, long long &it)
 {
-    if (it >= 10000000000)
+    if (it >= 10000000)
     {
         return;
     }
@@ -258,7 +281,7 @@ void recursive(vector<Transaction> &store, unordered_set<string> &s, vector<stri
             run.pop_back();
         }
     }
-    if (it >= 10000000000)
+    if (it >= 10000000)
     {
         return;
     }
@@ -269,7 +292,7 @@ int main()
 {
     csv_in();
     ofstream out_file;
-    out_file.open("output4.txt");
+    out_file.open("block.txt");
 
     sort_transactions(store);
 
@@ -280,20 +303,10 @@ int main()
         mapping_id[store[i].ret_id()] = i;
         reverse_id[i] = store[i].ret_id();
     }
-    // for (int i = 0; i < store.size(); i++)
-    // {
-    //     int id1 = mapping_id[store[i].ret_id()];
-    //     int f1 = store[i].ret_fees();
-    //     int w1 = store[i].ret_weight();
-    //     vector<int> temp;
-    //     for (int k = 0; k < store[i].ret_par_size(); k++)
-    //     {
-    //         temp.push_back(mapping_id[store[i].ret_par_value(k)]);
-    //     }
-    //     store_mapped.push_back({id1, w1, f1, temp});
-    // }
 
-    pair<int, vector<int>> f = KnapSack(store);   // attempting Knapsack Approach
+    vector<vector<int>> par_recursive(store.size());
+    recursive_parents(store, par_recursive, mapping_id);
+    // pair<int, vector<int>> f = KnapSack(store, max_Weight);  // attempting Knapsack Approach
     // cout << f.first << endl;
     // for (auto i : f.second)
     // {
@@ -301,28 +314,9 @@ int main()
     // }
     // // Knapsack has very large space and time complexity for this case
 
-    vector<vector<int>> par_recursive(store.size());
-    for (int i = 0; i < store.size(); i++)
-    {
-        // sum = max(sum, int(store_mapped[i].par.size()));
-        unordered_set<int> s;
-        for (int j = 0; j < store[i].ret_par_size(); j++)
-        {
-            s.insert(mapping_id[store[i].ret_par_value(j)]);
-            for (int k = 0; k < par_recursive[mapping_id[store[i].ret_par_value(j)]].size(); k++) // adding parents of parents which have been already traversed by the loop
-            {
-                s.insert(par_recursive[mapping_id[store[i].ret_par_value(j)]][k]);
-            }
-        }
-        for (auto j : s)
-        {
-            par_recursive[i].push_back(j);
-        }
-    }
-
     double min_weight = 0;
     double average_ratio = avg_ratio(store);
-
+    cout << "Average Fees/Weight Ratio : " << average_ratio << endl;
     vector<string> final;
     int mx = 0;
     long long it = 0;
@@ -330,8 +324,39 @@ int main()
     unordered_set<string> set_string;
     vector<string> run;
 
-    // pre_recursive(store, set_string, final, run, w, mx);
-    // recursive(store, set_string, final, run, 0, w, mx, mx, it);
+    // ifstream fin;
+    // fin.open("output2.txt");
+    // int f = 0;
+    // while (getline(fin, line))
+    // {
+    //     stringstream lineStream(line);
+    //     getline(lineStream, word);
+    //     f += store[mapping_id[word]].ret_fees();
+    // }
+    // cout << f << endl;
+
+    pre_recursive(store, set_string, final, run, w, mx);
+    recursive(store, set_string, final, run, 0, w, mx, mx, it);
+    unordered_set<string> check;
+
+    int count = 0;
+    w = 0;
+    for (int i = 0; i < final.size(); i++)
+    {
+        for (int j = 0; j < store[mapping_id[final[i]]].ret_par_size(); j++)
+        {
+            if (check.find(store[mapping_id[final[i]]].ret_par_value(j)) == check.end())
+            {
+                count++;
+                break;
+            }
+        }
+        w += store[mapping_id[final[i]]].ret_weight();
+        check.insert(final[i]);
+    }
+    cout << "check if parents are present before child : " << count << endl;
+    cout << "weight : " << w << endl;
+
     for (int i = 0; i < final.size(); i++)
     {
         out_file << final[i] << endl;
