@@ -1,5 +1,84 @@
 #include <bits/stdc++.h>
 using namespace std;
+
+class Transaction
+{
+private:
+    string id;
+    int weight;
+    int fees;
+    vector<string> par;
+
+public:
+    Transaction(string id, int weight, int fees, vector<string> par)
+    {
+        this->id = id;
+        this->weight = weight;
+        this->fees = fees;
+        this->par = par;
+    }
+
+    double ratio()
+    {
+        return double(this->weight) / double(this->fees);
+    }
+    string ret_id()
+    {
+        return this->id;
+    }
+    int ret_weight()
+    {
+        return this->weight;
+    }
+    int ret_fees()
+    {
+        return this->fees;
+    }
+    string ret_par_value(int j)
+    {
+        return this->par[j];
+    }
+    int ret_par_size()
+    {
+        return this->par.size();
+    }
+};
+
+void sort_transactions(vector<Transaction> &store)
+{
+    vector<Transaction> final;
+    unordered_set<string> s1;
+    for (int i = 0; i < store.size(); i++) // Arranging such that parents occur before children
+    {
+        for (int j = 0; j < store.size(); j++)
+        {
+            if (s1.find(store[j].ret_id()) != s1.end())
+            {
+                continue;
+            }
+            int flag = 1;
+            for (int k = 0; k < store[j].ret_par_size(); k++)
+            {
+                if (s1.find(store[j].ret_par_value(k)) == s1.end())
+                {
+                    flag = 0;
+                    break;
+                }
+            }
+            if (flag)
+            {
+                final.push_back(store[j]);
+                s1.insert(store[j].ret_id());
+            }
+        }
+        if (s1.size() == store.size())
+        {
+            break;
+        }
+    }
+    store = final;
+}
+
 struct trans
 {
     string id;
@@ -17,7 +96,7 @@ struct trans_mapped
 int W = 4000000;
 vector<vector<pair<int, vector<int>>>> dp(2, vector<pair<int, vector<int>>>(W + 1, {0, {}}));
 // declaring Global Variables for taking input from given CSV file
-vector<trans> store;
+vector<Transaction> store;
 vector<trans_mapped> store_mapped;
 string word, line;
 //------------------------
@@ -47,7 +126,8 @@ void csv_in()
         {
             temp.push_back(word);
         }
-        store.push_back({id1, weight1, fee1, temp});
+        Transaction obj = Transaction(id1, weight1, fee1, temp);
+        store.push_back(obj);
     }
 }
 
@@ -160,60 +240,33 @@ int main()
 {
     csv_in();
     ofstream out_file;
-    out_file.open("output3.txt");
-    vector<trans> final;
-    unordered_set<string> s1;
-    for (int i = 0; i < store.size(); i++) // Arranging such that parents occur before children
-    {
-        for (int j = 0; j < store.size(); j++)
-        {
-            if (s1.find(store[j].id) != s1.end())
-            {
-                continue;
-            }
-            int flag = 1;
-            for (int k = 0; k < store[j].par.size(); k++)
-            {
-                if (s1.find(store[j].par[k]) == s1.end())
-                {
-                    flag = 0;
-                    break;
-                }
-            }
-            if (flag)
-            {
-                final.push_back(store[j]);
-                s1.insert(store[j].id);
-            }
-        }
-        if (s1.size() == store.size())
-        {
-            break;
-        }
-    }
+    out_file.open("output4.txt");
+
+    sort_transactions(store);
 
     unordered_map<string, int> mapping_id; // mapping string to integers, to increase processing speed
     unordered_map<int, string> reverse_id; // reverse mapping to retrieve id
     for (int i = 0; i < store.size(); i++)
     {
-        mapping_id[store[i].id] = i;
-        reverse_id[i] = store[i].id;
+        mapping_id[store[i].ret_id()] = i;
+        reverse_id[i] = store[i].ret_id();
     }
     for (int i = 0; i < store.size(); i++)
     {
-        int id1 = mapping_id[store[i].id];
-        int f1 = store[i].fees;
-        int w1 = store[i].weight;
+        int id1 = mapping_id[store[i].ret_id()];
+        int f1 = store[i].ret_fees();
+        int w1 = store[i].ret_weight();
         vector<int> temp;
-        for (int k = 0; k < store[i].par.size(); k++)
+        for (int k = 0; k < store[i].ret_par_size(); k++)
         {
-            temp.push_back(mapping_id[store[i].par[k]]);
+            temp.push_back(mapping_id[store[i].ret_par_value(k)]);
         }
         store_mapped.push_back({id1, w1, f1, temp});
     }
-    //freeing up memory , hopefully
+
+        //freeing up memory , hopefully
     store.clear();
-    s1.clear();
+    // s1.clear();
     //-------
 
     // pair<int, vector<int>> f = KnapSack(store_mapped);
@@ -262,17 +315,19 @@ int main()
                     break;
                 }
             }
-            if(flag && w + store_mapped[i].weight <= 4000000){
+            if (flag && w + store_mapped[i].weight <= 4000000)
+            {
                 s_int.insert(store_mapped[i].id);
                 f.push_back(store_mapped[i].id);
                 mx += store_mapped[i].fees;
-                w+= store_mapped[i].weight;
+                w += store_mapped[i].weight;
             }
         }
     }
     rec(store_mapped, s_int, f, run, 0, w, mx, mx, it);
-    for(int i = 0;i<f.size();i++){
-        out_file<<reverse_id[f[i]]<<endl;
+    for (int i = 0; i < f.size(); i++)
+    {
+        out_file << reverse_id[f[i]] << endl;
     }
     cout << mx << endl;
 
