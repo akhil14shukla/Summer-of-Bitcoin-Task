@@ -20,7 +20,7 @@ public:
 
     double ratio()
     {
-        return double(this->weight) / double(this->fees);
+        return double(this->fees) / double(this->weight);
     }
     string ret_id()
     {
@@ -79,19 +79,19 @@ void sort_transactions(vector<Transaction> &store)
     store = final;
 }
 
-struct trans_mapped
-{
-    int id;
-    int weight;
-    int fees;
-    vector<int> par;
-};
+// struct trans_mapped
+// {
+//     int id;
+//     int weight;
+//     int fees;
+//     vector<int> par;
+// };
 int W = 4000000;
-// vector<vector<pair<int, vector<int>>>> dp(2, vector<pair<int, vector<int>>>(W + 1, {0, {}}));  // DP table for Knapsack Approach
+vector<vector<pair<int, vector<int>>>> dp(2, vector<pair<int, vector<int>>>(W + 1, {0, {}})); // DP table for Knapsack Approach
 // declaring Global Variables for taking input from given CSV file
 
-vector<Transaction> store;          //global vector for maintaining transactions
-vector<trans_mapped> store_mapped;
+vector<Transaction> store; //global vector for maintaining transactions
+// vector<trans_mapped> store_mapped;
 string word, line;
 //------------------------
 
@@ -125,10 +125,18 @@ void csv_in()
     }
 }
 
-pair<int, vector<int>> KnapSack(vector<trans_mapped> store)
+double avg_ratio(vector<Transaction> &store)
 {
+    double average_ratio = 0;
+    for (int i = 0; i < store.size(); i++)
+    {
+        average_ratio += store[i].ratio();
+    }
+    average_ratio = average_ratio / double(store.size());
+}
 
-    // memset(dp, 0, sizeof(dp));
+pair<int, vector<int>> KnapSack(vector<Transaction> store)
+{
     int i = 0;
     int n = store.size();
     while (i < n)
@@ -138,13 +146,13 @@ pair<int, vector<int>> KnapSack(vector<trans_mapped> store)
         {
             while (++j <= W) // check for each value
             {
-                if (store[i].weight <= j) // include element
+                if (store[i].ret_weight() <= j) // include element
                 {
-                    if (store[i].fees + dp[0][j - store[i].weight].first > dp[0][j].first)
+                    if (store[i].ret_fees() + dp[0][j - store[i].ret_weight()].first > dp[0][j].first)
                     {
-                        dp[1][j].first = store[i].fees + dp[0][j - store[i].weight].first;
-                        dp[1][j].second = dp[0][j - store[i].weight].second;
-                        dp[1][j].second.push_back(store[i].id);
+                        dp[1][j].first = store[i].ret_fees() + dp[0][j - store[i].ret_weight()].first;
+                        dp[1][j].second = dp[0][j - store[i].ret_weight()].second;
+                        dp[1][j].second.push_back(i);
                     }
                     else
                     {
@@ -162,13 +170,13 @@ pair<int, vector<int>> KnapSack(vector<trans_mapped> store)
         {
             while (++j <= W)
             {
-                if (store[i].weight <= j)
+                if (store[i].ret_weight() <= j)
                 {
-                    if (store[i].fees + dp[1][j - store[i].weight].first > dp[1][j].first)
+                    if (store[i].ret_fees() + dp[1][j - store[i].ret_weight()].first > dp[1][j].first)
                     {
-                        dp[0][j].first = store[i].fees + dp[1][j - store[i].weight].first;
-                        dp[0][j].second = dp[1][j - store[i].weight].second;
-                        dp[0][j].second.push_back(store[i].id);
+                        dp[0][j].first = store[i].ret_fees() + dp[1][j - store[i].ret_weight()].first;
+                        dp[0][j].second = dp[1][j - store[i].ret_weight()].second;
+                        dp[0][j].second.push_back(i);
                     }
                     else
                     {
@@ -186,7 +194,34 @@ pair<int, vector<int>> KnapSack(vector<trans_mapped> store)
     return (n % 2 != 0) ? dp[0][W] : dp[1][W];
 }
 
-void rec(vector<trans_mapped> &store, unordered_set<int> &s, vector<int> &final, vector<int> &run, int i, int w, int f, int &mx, long long &it)
+void pre_recursive(vector<Transaction> &store, unordered_set<string> &s, vector<string> &final, vector<string> &run, int &w, int &mx)
+{
+    for (int i = 0; i < store.size(); i++)
+    {
+        if (store[i].ratio() > 1.01107)
+        {
+            int flag = 1;
+            for (int j = 0; j < store[i].ret_par_size(); j++)
+            {
+                if (s.find(store[i].ret_par_value(j)) == s.end())
+                {
+                    flag = 0;
+                    break;
+                }
+            }
+            if (flag && w + store[i].ret_weight() <= 4000000)
+            {
+                s.insert(store[i].ret_id());
+                final.push_back(store[i].ret_id());
+                run.push_back(store[i].ret_id());
+                mx += store[i].ret_fees();
+                w += store[i].ret_weight();
+            }
+        }
+    }
+}
+
+void recursive(vector<Transaction> &store, unordered_set<string> &s, vector<string> &final, vector<string> &run, int i, int w, int f, int &mx, long long &it)
 {
     if (it >= 10000000000)
     {
@@ -203,12 +238,12 @@ void rec(vector<trans_mapped> &store, unordered_set<int> &s, vector<int> &final,
         it++;
         return;
     }
-    if (w + store[i].weight <= 4000000 && s.find(store[i].id) == s.end())
+    if (w + store[i].ret_weight() <= 4000000 && s.find(store[i].ret_id()) == s.end())
     {
         int flag = 1;
-        for (int i1 = 0; i1 < store[i].par.size(); i1++)
+        for (int i1 = 0; i1 < store[i].ret_par_size(); i1++)
         {
-            if (s.find(store[i].par[i1]) == s.end())
+            if (s.find(store[i].ret_par_value(i1)) == s.end())
             {
                 flag = 0;
                 break;
@@ -216,10 +251,10 @@ void rec(vector<trans_mapped> &store, unordered_set<int> &s, vector<int> &final,
         }
         if (flag)
         {
-            run.push_back(store[i].id);
-            s.insert(store[i].id);
-            rec(store, s, final, run, i + 1, w + store[i].weight, f + store[i].fees, mx, it);
-            s.erase(store[i].id);
+            run.push_back(store[i].ret_id());
+            s.insert(store[i].ret_id());
+            recursive(store, s, final, run, i + 1, w + store[i].ret_weight(), f + store[i].ret_fees(), mx, it);
+            s.erase(store[i].ret_id());
             run.pop_back();
         }
     }
@@ -227,7 +262,7 @@ void rec(vector<trans_mapped> &store, unordered_set<int> &s, vector<int> &final,
     {
         return;
     }
-    rec(store, s, final, run, i + 1, w, f, mx, it);
+    recursive(store, s, final, run, i + 1, w, f, mx, it);
 }
 
 int main()
@@ -245,18 +280,18 @@ int main()
         mapping_id[store[i].ret_id()] = i;
         reverse_id[i] = store[i].ret_id();
     }
-    for (int i = 0; i < store.size(); i++)
-    {
-        int id1 = mapping_id[store[i].ret_id()];
-        int f1 = store[i].ret_fees();
-        int w1 = store[i].ret_weight();
-        vector<int> temp;
-        for (int k = 0; k < store[i].ret_par_size(); k++)
-        {
-            temp.push_back(mapping_id[store[i].ret_par_value(k)]);
-        }
-        store_mapped.push_back({id1, w1, f1, temp});
-    }
+    // for (int i = 0; i < store.size(); i++)
+    // {
+    //     int id1 = mapping_id[store[i].ret_id()];
+    //     int f1 = store[i].ret_fees();
+    //     int w1 = store[i].ret_weight();
+    //     vector<int> temp;
+    //     for (int k = 0; k < store[i].ret_par_size(); k++)
+    //     {
+    //         temp.push_back(mapping_id[store[i].ret_par_value(k)]);
+    //     }
+    //     store_mapped.push_back({id1, w1, f1, temp});
+    // }
 
     // pair<int, vector<int>> f = KnapSack(store_mapped);   // attempting Knapsack Approach
     // cout << f.first << endl;
@@ -266,18 +301,17 @@ int main()
     // }
     // // Knapsack has very large space and time complexity for this case
 
-
-    vector<vector<int>> par_recursive(store_mapped.size());  
-    for (int i = 0; i < store_mapped.size(); i++)
+    vector<vector<int>> par_recursive(store.size());
+    for (int i = 0; i < store.size(); i++)
     {
         // sum = max(sum, int(store_mapped[i].par.size()));
         unordered_set<int> s;
-        for (int j = 0; j < store_mapped[i].par.size(); j++)
+        for (int j = 0; j < store[i].ret_par_size(); j++)
         {
-            s.insert(store_mapped[i].par[j]);
-            for (int k = 0; k < store_mapped[store_mapped[i].par[j]].par.size(); k++)
+            s.insert(mapping_id[store[i].ret_par_value(j)]);
+            for (int k = 0; k < par_recursive[mapping_id[store[i].ret_par_value(j)]].size(); k++) // adding parents of parents which have been already traversed by the loop
             {
-                s.insert(store_mapped[store_mapped[i].par[j]].par[k]);
+                s.insert(par_recursive[mapping_id[store[i].ret_par_value(j)]][k]);
             }
         }
         for (auto j : s)
@@ -287,39 +321,20 @@ int main()
     }
 
     double min_weight = 0;
+    double average_ratio = avg_ratio(store);
 
-    vector<int> f;
+    vector<string> final;
     int mx = 0;
     long long it = 0;
     int w = 0;
-    unordered_set<int> s_int;
-    vector<int> run;
-    for (int i = 0; i < store_mapped.size(); i++)
+    unordered_set<string> set_string;
+    vector<string> run;
+
+    pre_recursive(store, set_string, final, run, w, mx);
+    recursive(store, set_string, final, run, 0, w, mx, mx, it);
+    for (int i = 0; i < final.size(); i++)
     {
-        if (double(store_mapped[i].fees) / double(store_mapped[i].weight) > 1.01107)
-        {
-            int flag = 1;
-            for (int j = 0; j < store_mapped[i].par.size(); j++)
-            {
-                if (s_int.find(store_mapped[i].par[j]) == s_int.end())
-                {
-                    flag = 0;
-                    break;
-                }
-            }
-            if (flag && w + store_mapped[i].weight <= 4000000)
-            {
-                s_int.insert(store_mapped[i].id);
-                f.push_back(store_mapped[i].id);
-                mx += store_mapped[i].fees;
-                w += store_mapped[i].weight;
-            }
-        }
-    }
-    rec(store_mapped, s_int, f, run, 0, w, mx, mx, it);
-    for (int i = 0; i < f.size(); i++)
-    {
-        out_file << reverse_id[f[i]] << endl;
+        out_file << final[i] << endl;
     }
     cout << mx << endl;
 
