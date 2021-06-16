@@ -293,7 +293,7 @@ int main()
     //     store_mapped.push_back({id1, w1, f1, temp});
     // }
 
-    // pair<int, vector<int>> f = KnapSack(store_mapped);   // attempting Knapsack Approach
+    pair<int, vector<int>> f = KnapSack(store);   // attempting Knapsack Approach
     // cout << f.first << endl;
     // for (auto i : f.second)
     // {
@@ -330,8 +330,8 @@ int main()
     unordered_set<string> set_string;
     vector<string> run;
 
-    pre_recursive(store, set_string, final, run, w, mx);
-    recursive(store, set_string, final, run, 0, w, mx, mx, it);
+    // pre_recursive(store, set_string, final, run, w, mx);
+    // recursive(store, set_string, final, run, 0, w, mx, mx, it);
     for (int i = 0; i < final.size(); i++)
     {
         out_file << final[i] << endl;
