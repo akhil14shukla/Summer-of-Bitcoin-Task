@@ -246,7 +246,7 @@ void pre_recursive(vector<Transaction> &store, unordered_set<string> &s, vector<
 
 void recursive(vector<Transaction> &store, unordered_set<string> &s, vector<string> &final, vector<string> &run, int i, int w, int f, int &mx, long long &it)
 {
-    if (it >= 10000000)
+    if (it >= 10000000000)
     {
         return;
     }
@@ -281,7 +281,7 @@ void recursive(vector<Transaction> &store, unordered_set<string> &s, vector<stri
             run.pop_back();
         }
     }
-    if (it >= 10000000)
+    if (it >= 10000000000)
     {
         return;
     }
@@ -314,6 +314,7 @@ int main()
     // }
     // // Knapsack has very large space and time complexity for this case
 
+    // Greedy-Naive Approach
     double min_weight = 0;
     double average_ratio = avg_ratio(store);
     cout << "Average Fees/Weight Ratio : " << average_ratio << endl;
@@ -323,22 +324,13 @@ int main()
     int w = 0;
     unordered_set<string> set_string;
     vector<string> run;
+    // // Variables declared
 
-    // ifstream fin;
-    // fin.open("output2.txt");
-    // int f = 0;
-    // while (getline(fin, line))
-    // {
-    //     stringstream lineStream(line);
-    //     getline(lineStream, word);
-    //     f += store[mapping_id[word]].ret_fees();
-    // }
-    // cout << f << endl;
+    pre_recursive(store, set_string, final, run, w, mx);        // Greedy Method, picking the ones with ratio greater than average
+    recursive(store, set_string, final, run, 0, w, mx, mx, it); // recursive or naive method
 
-    pre_recursive(store, set_string, final, run, w, mx);
-    recursive(store, set_string, final, run, 0, w, mx, mx, it);
+    ///// Solution Checking Section //////
     unordered_set<string> check;
-
     int count = 0;
     w = 0;
     for (int i = 0; i < final.size(); i++)
@@ -356,12 +348,13 @@ int main()
     }
     cout << "check if parents are present before child : " << count << endl;
     cout << "weight : " << w << endl;
+    cout << "Fees : " << mx << endl;
 
+    ////// Exporting to block.txt file ///////
     for (int i = 0; i < final.size(); i++)
     {
         out_file << final[i] << endl;
     }
-    cout << mx << endl;
 
     return 0;
 }
