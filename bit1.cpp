@@ -79,13 +79,6 @@ void sort_transactions(vector<Transaction> &store)
     store = final;
 }
 
-struct trans
-{
-    string id;
-    int weight;
-    int fees;
-    vector<string> par;
-};
 struct trans_mapped
 {
     int id;
@@ -94,9 +87,10 @@ struct trans_mapped
     vector<int> par;
 };
 int W = 4000000;
-vector<vector<pair<int, vector<int>>>> dp(2, vector<pair<int, vector<int>>>(W + 1, {0, {}}));
+// vector<vector<pair<int, vector<int>>>> dp(2, vector<pair<int, vector<int>>>(W + 1, {0, {}}));  // DP table for Knapsack Approach
 // declaring Global Variables for taking input from given CSV file
-vector<Transaction> store;
+
+vector<Transaction> store;          //global vector for maintaining transactions
 vector<trans_mapped> store_mapped;
 string word, line;
 //------------------------
@@ -264,36 +258,34 @@ int main()
         store_mapped.push_back({id1, w1, f1, temp});
     }
 
-        //freeing up memory , hopefully
-    store.clear();
-    // s1.clear();
-    //-------
-
-    // pair<int, vector<int>> f = KnapSack(store_mapped);
+    // pair<int, vector<int>> f = KnapSack(store_mapped);   // attempting Knapsack Approach
     // cout << f.first << endl;
     // for (auto i : f.second)
     // {
     //     cout << i << endl;
     // }
-    int sum = 0;
-    // vector<vector<int>> par_recursive(store_mapped.size());
-    // for (int i = 0; i < store_mapped.size(); i++)
-    // {
-    //     // sum = max(sum, int(store_mapped[i].par.size()));
-    //     unordered_set<int> s;
-    //     for (int j = 0; j < store_mapped[i].par.size(); j++)
-    //     {
-    //         s.insert(store_mapped[i].par[j]);
-    //         for (int k = 0; k < store_mapped[store_mapped[i].par[j]].par.size(); k++)
-    //         {
-    //             s.insert(store_mapped[store_mapped[i].par[j]].par[k]);
-    //         }
-    //     }
-    //     for (auto j : s)
-    //     {
-    //         par_recursive[i].push_back(j);
-    //     }
-    // }
+    // // Knapsack has very large space and time complexity for this case
+
+
+    vector<vector<int>> par_recursive(store_mapped.size());  
+    for (int i = 0; i < store_mapped.size(); i++)
+    {
+        // sum = max(sum, int(store_mapped[i].par.size()));
+        unordered_set<int> s;
+        for (int j = 0; j < store_mapped[i].par.size(); j++)
+        {
+            s.insert(store_mapped[i].par[j]);
+            for (int k = 0; k < store_mapped[store_mapped[i].par[j]].par.size(); k++)
+            {
+                s.insert(store_mapped[store_mapped[i].par[j]].par[k]);
+            }
+        }
+        for (auto j : s)
+        {
+            par_recursive[i].push_back(j);
+        }
+    }
+
     double min_weight = 0;
 
     vector<int> f;
