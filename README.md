@@ -7,6 +7,8 @@
 2. After much of thinking, I found that, arranging the transactions beforehand in a order such that parent transactions come before the child transactions will 
 eventually be very helpful. I created a separate function for handling sorting.
 
+---
+
 ### **Solving the Problem**
 
 Now a naive appproach can be to check all the possible combinations of transactions, but that will give a exponential time-complexity (2<sup>n</sup> , where n are the 
