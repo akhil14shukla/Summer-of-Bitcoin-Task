@@ -93,7 +93,7 @@ void csv_in()
     fin.open("mempool.csv", ios::in);
 
     getline(fin, line);
-    cout << line << endl;
+    // cout << line << endl;
 
     while (getline(fin, line))
     {
@@ -221,7 +221,7 @@ void pre_recursive(vector<Transaction> &store, unordered_set<string> &s, vector<
 {
     for (int i = 0; i < store.size(); i++)
     {
-        if (store[i].ratio() > 1.01107) //average ratio
+        if (store[i].ratio() > 0.3) // ratio at which we get maximum fees (Greedy)
         {
             int flag = 1;
             for (int j = 0; j < store[i].ret_par_size(); j++)
@@ -246,12 +246,12 @@ void pre_recursive(vector<Transaction> &store, unordered_set<string> &s, vector<
 
 void recursive(vector<Transaction> &store, unordered_set<string> &s, vector<string> &final, vector<string> &run, int i, int w, int f, int &mx, long long &it)
 {
-    if (it >= 10000000000)
+    if (it >= 10000000)
     {
         return;
     }
     // it++;
-    if (i == store.size() || 4000000 - w < 440)
+    if (i == store.size() || 4000000 - w < 440) // 440 is the minimum weight in the given data, hence returning the function
     {
         if (mx < f)
         {
@@ -281,7 +281,7 @@ void recursive(vector<Transaction> &store, unordered_set<string> &s, vector<stri
             run.pop_back();
         }
     }
-    if (it >= 10000000000)
+    if (it >= 10000000)
     {
         return;
     }
@@ -292,7 +292,7 @@ int main()
 {
     csv_in();
     ofstream out_file;
-    out_file.open("block.txt");
+    out_file.open("block3.txt");
 
     sort_transactions(store);
 
@@ -314,10 +314,16 @@ int main()
     // }
     // // Knapsack has very large space and time complexity for this case
 
-    // Greedy-Naive Approach
-    double min_weight = 0;
-    double average_ratio = avg_ratio(store);
-    cout << "Average Fees/Weight Ratio : " << average_ratio << endl;
+    //////// Greedy-Naive Approach /////////////
+
+    // int min_weight = 1000000000;
+    // for (int i = 0; i < store.size(); i++)
+    // {
+    //     min_weight = min(min_weight, store[i].ret_weight());
+    // }
+    // cout << "min_weight : " << min_weight << endl;
+    // double average_ratio = avg_ratio(store);
+    // cout << "Average Fees/Weight Ratio : " << average_ratio << endl;
     vector<string> final;
     int mx = 0;
     long long it = 0;
@@ -325,7 +331,7 @@ int main()
     unordered_set<string> set_string;
     vector<string> run;
     // // Variables declared
-
+    int ch = 0;
     pre_recursive(store, set_string, final, run, w, mx);        // Greedy Method, picking the ones with ratio greater than average
     recursive(store, set_string, final, run, 0, w, mx, mx, it); // recursive or naive method
 
