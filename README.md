@@ -1,12 +1,15 @@
 # Summer-of-Bitcoin-Task
 
-1. I first started wth taking input from CSV file in my C++ program. To maintain the transactions, I created a separate class fot them and added some basic 
-functions to retrieve the values stored.
+### Data Input and Sorting
+
+1. I first started wth taking input from CSV file. To maintain the transactions, I created a separate class fot them and added some basic functions to retrieve the values stored.
 
 2. After much of thinking, I found that, arranging the transactions beforehand in a order such that parent transactions come before the child transactions will 
 eventually be very helpful. I created a separate function for handling sorting.
 
-3. Now a naive appproach can be to check all the possible combinations of transactions, but that will give a exponential time-complexity (2^{n} , where n are the 
+### Solving the Problem
+
+3. Now a naive appproach can be to check all the possible combinations of transactions, but that will give a exponential time-complexity (2<sup>n</sup> , where n are the 
 given number of transactions), and is not at all practical.
 
 This problem is similar to 0/1 knapsack problem (based on Dynamic Programming Paradigm), but the trick here is the decision to include the next transaction depends also on previously included transactions. A separate function to implement Knapsack was written, but the space and time complexity were very large.
